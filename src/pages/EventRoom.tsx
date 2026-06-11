@@ -5,7 +5,8 @@ import { useGameStore } from "@/store/useGameStore";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { generateRandomEquipment } from "@/data/equipment";
 import { getItemById } from "@/data/events";
-import { Button, Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/ui";
+import { Button, Card, CardHeader, CardTitle, CardContent, Badge, ProgressBar } from "@/components/ui";
+import { CharacterCard } from "@/components/game";
 import type { GameEvent, EventOption } from "@/types/game";
 import {
   HelpCircle, Coins, Heart, Sparkles, Skull, ShoppingBag,
@@ -332,13 +333,19 @@ const EventRoom = () => {
           </CardContent>
         </Card>
 
-        <div className="mt-6 text-center">
-          <div className="flex items-center justify-center gap-6 text-gold-500">
-            <div className="flex items-center gap-2">
-              <Coins className="w-5 h-5" />
-              <span className="font-bold text-gold-400">{gold}</span>
-            </div>
-          </div>
+        <div className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">队伍状态</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {characters.map((char) => (
+                  <CharacterCard key={char.id} character={char} size="sm" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </motion.div>
     </div>

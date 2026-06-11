@@ -242,7 +242,6 @@ const Battle = () => {
   const handleEndTurn = () => {
     if (!isPlayerTurn || battleEnded) return;
     
-    processTurnEnd(currentTurnUnitId!);
     endTurn();
     selectAction(null);
     selectUnit(null);
@@ -252,11 +251,9 @@ const Battle = () => {
     const playerSuccess = usePlayerItem(item.id, targetId);
     const battleSuccess = useItem(item.id, targetId);
     if (playerSuccess && battleSuccess) {
-      addBattleLog(`使用了 ${item.name}`);
-      useBattleStore.getState().defend(selectedUnitId!);
       useBattleStore.setState((state) => ({
         playerCharacters: state.playerCharacters.map((c) =>
-          c.id === selectedUnitId ? { ...c, hasActed: true, isDefending: false } : c
+          c.id === selectedUnitId ? { ...c, hasActed: true } : c
         ),
         selectedAction: null,
       }));

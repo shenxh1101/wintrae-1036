@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { PlayerState, Character, Equipment, GameSettings } from '@/types/game';
-import { loadCodex, updateCodex } from '@/utils/storage';
+import { loadCodex, updateCodex, loadUnlockedDifficulties, saveUnlockedDifficulties as persistUnlockedDifficulties, loadInheritedResources as loadInheritedRes, clearInheritedResources as clearInheritedRes, saveInheritedResources as persistInheritedResources } from '@/utils/storage';
 import { getItemById } from '@/data/events';
 
 interface PlayerStore extends PlayerState {
@@ -29,21 +29,31 @@ interface PlayerStore extends PlayerState {
   setSettings: (settings: Partial<GameSettings>) => void;
   resetInventory: () => void;
   resetAll: (keepResources: boolean) => void;
+  loadInheritedResources: () => boolean;
+  saveInheritedResources: () => void;
 }
 
-const initialPlayerState: PlayerState = {
-  gold: 100,
-  currentFloor: 1,
-  difficulty: 1,
-  unlockedDifficulties: [1],
-  inventory: {
-    equipment: [],
-    items: [],
-  },
-  codex: {
-    enemies: [],
-    equipment: [],
-  },
+const getInitialPlayerState = (): PlayerState => {
+  const inherited = loadInheritedRes();
+  return {
+    gold: inherited ? inherited.gold : 100,
+    currentFloor: 1,
+    difficulty: 1,
+    unlockedDifficulties: loadUnlockedDifficulties(),
+    inventory: inherited
+      ? {
+          equipment: inherited.equipment,
+          items: inherited.items,
+        }
+      : {
+          equipment: [],
+          items: [],
+        },
+    codex: {
+      enemies: [],
+      equipment: [],
+    },
+  };
 };
 
 const initialSettings: GameSettings = {
@@ -55,7 +65,7 @@ const initialSettings: GameSettings = {
 };
 
 export const usePlayerStore = create<PlayerStore>((set, get) => ({
-  ...initialPlayerState,
+  ...getInitialPlayerState(),
   characters: [],
   settings: initialSettings,
 
@@ -343,12 +353,14 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
   setDifficulty: (difficulty) => set({ difficulty }),
 
-  unlockDifficulty: (difficulty) =>
+  unlockDifficulty: (difficulty) => {
     set((state) => ({
       unlockedDifficulties: [
         ...new Set([...state.unlockedDifficulties, difficulty]),
       ],
-    })),
+    }));
+    persistUnlockedDifficulties(get().unlockedDifficulties);
+  },
 
   setSettings: (settings) =>
     set((state) => ({ settings: { ...state.settings, ...settings } })),
@@ -361,10 +373,11 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       },
     }),
 
-  resetAll: (keepResources) =>
+  resetAll: (keepResources) => {
+    const initState = getInitialPlayerState();
     set((state) => ({
-      ...initialPlayerState,
-      gold: keepResources ? Math.floor(state.gold * 0.3) : initialPlayerState.gold,
+      ...initState,
+      gold: keepResources ? Math.floor(state.gold * 0.3) : initState.gold,
       inventory: keepResources
         ? {
             equipment: state.inventory.equipment.slice(0, 3),
@@ -373,9 +386,46 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
               quantity: Math.floor(i.quantity * 0.3),
             })).filter((i) => i.quantity > 0),
           }
-        : initialPlayerState.inventory,
+        : initState.inventory,
       codex: state.codex,
       unlockedDifficulties: state.unlockedDifficulties,
       currentFloor: 1,
-    })),
+    }));
+    
+    if (keepResources) {
+      const s = get();
+      persistInheritedResources({
+        gold: s.gold,
+        equipment: s.inventory.equipment,
+        items: s.inventory.items,
+      });
+    } else {
+      clearInheritedRes();
+    }
+  },
+
+  loadInheritedResources: () => {
+    const resources = loadInheritedRes();
+    if (!resources) return false;
+    
+    set((state) => ({
+      gold: resources.gold > 0 ? resources.gold : state.gold,
+      inventory: {
+        equipment: resources.equipment.length > 0 ? resources.equipment : state.inventory.equipment,
+        items: resources.items.length > 0 ? resources.items : state.inventory.items,
+      },
+    }));
+    
+    clearInheritedRes();
+    return true;
+  },
+
+  saveInheritedResources: () => {
+    const state = get();
+    persistInheritedResources({
+      gold: state.gold,
+      equipment: state.inventory.equipment,
+      items: state.inventory.items,
+    });
+  },
 }));

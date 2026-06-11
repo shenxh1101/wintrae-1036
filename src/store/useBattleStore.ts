@@ -425,12 +425,6 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
         c.id === nextUnitId ? { ...c, isDefending: false, hasActed: false } : c
       ),
     }));
-
-    if (!isPlayerTurn) {
-      setTimeout(() => {
-        get().executeEnemyTurn();
-      }, 800);
-    }
   },
 
   executeEnemyTurn: () => {

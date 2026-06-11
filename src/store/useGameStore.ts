@@ -75,6 +75,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     playerStore.setCharacters(characters);
     playerStore.setDifficulty(difficulty);
     playerStore.loadCodexData();
+    playerStore.loadInheritedResources();
 
     set({
       towerState: {

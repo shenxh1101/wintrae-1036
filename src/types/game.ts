@@ -232,6 +232,8 @@ export const STORAGE_KEYS = {
   SAVE_DATA: 'mechanic_tower_save',
   SETTINGS: 'mechanic_tower_settings',
   CODEX: 'mechanic_tower_codex',
+  UNLOCKED_DIFFICULTIES: 'mechanic_tower_unlocked_difficulties',
+  INHERITED_RESOURCES: 'mechanic_tower_inherited_resources',
 } as const;
 
 export const GRID_SIZE = 6;

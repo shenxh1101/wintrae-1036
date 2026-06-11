@@ -1,4 +1,4 @@
-import type { SaveData, GameSettings, PlayerState, Character, TowerState } from '@/types/game';
+import type { SaveData, GameSettings, PlayerState, Character, TowerState, Equipment } from '@/types/game';
 import { STORAGE_KEYS } from '@/types/game';
 
 export const saveGame = (
@@ -93,6 +93,51 @@ export const updateCodex = (type: 'enemies' | 'equipment', id: string): void => 
     codex[type].push(id);
     saveCodex(codex.enemies, codex.equipment);
   }
+};
+
+export const saveUnlockedDifficulties = (difficulties: number[]): void => {
+  localStorage.setItem(
+    STORAGE_KEYS.UNLOCKED_DIFFICULTIES,
+    JSON.stringify(difficulties)
+  );
+};
+
+export const loadUnlockedDifficulties = (): number[] => {
+  const data = localStorage.getItem(STORAGE_KEYS.UNLOCKED_DIFFICULTIES);
+  if (!data) return [1];
+  try {
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) ? parsed : [1];
+  } catch {
+    return [1];
+  }
+};
+
+export interface InheritedResources {
+  gold: number;
+  equipment: Equipment[];
+  items: { id: string; quantity: number }[];
+}
+
+export const saveInheritedResources = (resources: InheritedResources): void => {
+  localStorage.setItem(
+    STORAGE_KEYS.INHERITED_RESOURCES,
+    JSON.stringify(resources)
+  );
+};
+
+export const loadInheritedResources = (): InheritedResources | null => {
+  const data = localStorage.getItem(STORAGE_KEYS.INHERITED_RESOURCES);
+  if (!data) return null;
+  try {
+    return JSON.parse(data);
+  } catch {
+    return null;
+  }
+};
+
+export const clearInheritedResources = (): void => {
+  localStorage.removeItem(STORAGE_KEYS.INHERITED_RESOURCES);
 };
 
 export const exportSave = (): string => {

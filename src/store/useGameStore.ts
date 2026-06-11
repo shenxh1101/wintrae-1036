@@ -98,7 +98,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const playerStore = usePlayerStore.getState();
     playerStore.setCharacters(saveData.characters);
-    playerStore.addGold(0);
+
+    const ps = saveData.playerState;
+    playerStore.addGold(ps.gold - playerStore.gold);
+    playerStore.setDifficulty(ps.difficulty);
+    ps.unlockedDifficulties.forEach((d) => playerStore.unlockDifficulty(d));
+
+    const inv = ps.inventory;
+    playerStore.resetInventory();
+    inv.equipment.forEach((eq) => playerStore.addEquipment(eq));
+    inv.items.forEach((item) => playerStore.addItem(item.id, item.quantity));
+
+    if (ps.codex) {
+      playerStore.loadCodexData();
+    }
+
+    if (saveData.settings) {
+      playerStore.setSettings(saveData.settings);
+    }
 
     set({
       towerState: saveData.towerState,

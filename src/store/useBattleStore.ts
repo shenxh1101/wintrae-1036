@@ -520,12 +520,6 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     });
 
     get().checkBattleEnd();
-
-    if (!get().battleEnded) {
-      setTimeout(() => {
-        get().endTurn();
-      }, 600);
-    }
   },
 
   addBattleLog: (message) =>

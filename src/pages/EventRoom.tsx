@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useGameStore } from "@/store/useGameStore";
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { generateRandomEquipment } from "@/data/equipment";
+import { getItemById } from "@/data/events";
 import { Button, Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/ui";
 import type { GameEvent, EventOption } from "@/types/game";
 import {
@@ -14,7 +15,7 @@ import {
 const EventRoom = () => {
   const navigate = useNavigate();
   const { currentEvent, gamePhase, completeRoom, getCurrentRoom, setLastResult } = useGameStore();
-  const { gold, spendGold, addGold, healAllCharacters, damageCharacter, addEquipment, addItem, characters } = usePlayerStore();
+  const { gold, spendGold, addGold, healAllCharacters, restoreAllMp, damageCharacter, addEquipment, addItem, addExp, characters } = usePlayerStore();
   const [selectedOption, setSelectedOption] = useState<EventOption | null>(null);
   const [result, setResult] = useState<{
     success: boolean;
@@ -89,21 +90,21 @@ const EventRoom = () => {
   const handleOptionSelect = (option: EventOption) => {
     if (isProcessing || result) return;
 
-    if (option.text.includes("购买") && option.result.type === "item") {
-      const priceMatch = option.text.match(/(\d+)金币/);
-      const price = priceMatch ? parseInt(priceMatch[1]) : 0;
-      if (price > 0 && gold < price) {
-        setResult({
-          success: false,
-          message: "金币不足！",
-          value: 0,
-          type: "gold",
-        });
-        return;
-      }
-      if (price > 0) {
-        spendGold(price);
-      }
+    const priceMatch = option.text.match(/(\d+)金币/);
+    const price = priceMatch ? parseInt(priceMatch[1]) : 0;
+
+    if (price > 0 && gold < price) {
+      setResult({
+        success: false,
+        message: "金币不足！",
+        value: 0,
+        type: "gold",
+      });
+      return;
+    }
+
+    if (price > 0) {
+      spendGold(price);
     }
 
     setSelectedOption(option);
@@ -124,11 +125,16 @@ const EventRoom = () => {
             break;
           case "hp":
             healAllCharacters(option.result.value / 100);
-            message = `队伍恢复了 ${option.result.value}% 生命值！`;
+            if (option.result.value >= 1) {
+              restoreAllMp(1);
+              message = "队伍完全恢复了生命和法力！";
+            } else {
+              message = `队伍恢复了 ${Math.round(option.result.value * 100)}% 生命值！`;
+            }
             break;
           case "mp":
-            healAllCharacters(0);
-            message = `队伍恢复了 ${option.result.value}% 法力值！`;
+            restoreAllMp(option.result.value);
+            message = `队伍恢复了 ${Math.round(option.result.value * 100)}% 法力值！`;
             break;
           case "equipment":
             const equipment = generateRandomEquipment();
@@ -137,11 +143,14 @@ const EventRoom = () => {
             break;
           case "item":
             const itemId = option.result.itemId || "hp_potion_small";
-            addItem(itemId, 1);
-            message = "获得了物品！";
+            addItem(itemId, option.result.value || 1);
+            const itemData = getItemById(itemId);
+            message = `获得了 ${option.result.value || 1} 个${itemData?.name || "物品"}！`;
             break;
           case "exp":
-            message = `获得了 ${option.result.value} 经验值！`;
+            const expPerChar = Math.floor(option.result.value / characters.length);
+            characters.forEach((c) => addExp(c.id, expPerChar));
+            message = `每位角色获得了 ${expPerChar} 经验值！`;
             break;
           case "damage":
             const randomChar = characters[Math.floor(Math.random() * characters.length)];

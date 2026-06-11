@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useGameStore } from "@/store/useGameStore";
 import { usePlayerStore } from "@/store/usePlayerStore";
+import { deleteSave } from "@/utils/storage";
 import { Button, Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/ui";
 import { CharacterCard } from "@/components/game";
 import { RARITY_COLORS, RARITY_NAMES, DIFFICULTY_NAMES } from "@/types/game";
@@ -14,7 +15,7 @@ import {
 
 const Result = () => {
   const navigate = useNavigate();
-  const { lastResult, towerState, goToNextFloor, setGamePhase, resetGame } = useGameStore();
+  const { lastResult, towerState, setGamePhase, resetGame } = useGameStore();
   const { gold, characters, addGold, resetAll } = usePlayerStore();
   const [showDetails, setShowDetails] = useState(false);
   const [keptResources, setKeptResources] = useState<{
@@ -46,6 +47,7 @@ const Result = () => {
       });
 
       resetGame(true);
+      deleteSave();
       setTimeout(() => {
         navigate("/");
       }, 3000);
@@ -54,12 +56,15 @@ const Result = () => {
 
     if (lastResult?.type === "victory") {
       resetGame(false);
+      deleteSave();
       navigate("/");
       return;
     }
 
     if (lastResult?.type === "floor") {
-      goToNextFloor();
+      setGamePhase("exploring");
+      navigate("/exploring");
+      return;
     }
 
     setGamePhase("exploring");
@@ -83,6 +88,7 @@ const Result = () => {
       });
 
       resetGame(true);
+      deleteSave();
       setTimeout(() => {
         navigate("/");
       }, 3000);
@@ -90,6 +96,7 @@ const Result = () => {
     }
 
     resetGame(false);
+    deleteSave();
     navigate("/");
   };
 
@@ -125,7 +132,7 @@ const Result = () => {
   const getResultTitle = () => {
     if (lastResult.type === "gameover") return "挑战失败";
     if (lastResult.type === "victory") return "通关成功！";
-    if (lastResult.type === "floor") return `第 ${towerState.floor} 层完成`;
+    if (lastResult.type === "floor") return `第 ${towerState.floor - 1} 层完成`;
     if (lastResult.type === "battle") return isVictory ? "战斗胜利" : "战斗失败";
     return isVictory ? "事件完成" : "事件失败";
   };

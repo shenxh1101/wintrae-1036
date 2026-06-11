@@ -57,7 +57,7 @@ const Battle = () => {
   } = useBattleStore();
 
   const { towerState, getCurrentRoom, completeRoom, setLastResult } = useGameStore();
-  const { characters, addGold, addExp, addEquipment, addItem, addToCodex, inventory } = usePlayerStore();
+  const { characters, addGold, addExp, addEquipment, addItem, addToCodex, inventory, useItem: usePlayerItem } = usePlayerStore();
   const [showItemModal, setShowItemModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
@@ -101,13 +101,12 @@ const Battle = () => {
       const timer = setTimeout(() => {
         executeEnemyTurn();
         setTimeout(() => {
-          checkBattleEnd();
           if (!useBattleStore.getState().battleEnded) {
             endTurn();
           }
           setIsProcessing(false);
-        }, 1000);
-      }, 1000);
+        }, 800);
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, [currentTurnUnitId, isPlayerTurn, battleEnded]);
@@ -250,8 +249,17 @@ const Battle = () => {
   };
 
   const handleUseItem = (item: Item, targetId: string) => {
-    if (useItem(item.id, targetId)) {
+    const playerSuccess = usePlayerItem(item.id, targetId);
+    const battleSuccess = useItem(item.id, targetId);
+    if (playerSuccess && battleSuccess) {
       addBattleLog(`使用了 ${item.name}`);
+      useBattleStore.getState().defend(selectedUnitId!);
+      useBattleStore.setState((state) => ({
+        playerCharacters: state.playerCharacters.map((c) =>
+          c.id === selectedUnitId ? { ...c, hasActed: true, isDefending: false } : c
+        ),
+        selectedAction: null,
+      }));
       setShowItemModal(false);
       setSelectedItem(null);
     }
@@ -262,10 +270,10 @@ const Battle = () => {
   };
 
   const selectedCharacter = getSelectedCharacter();
-  const consumableItems = getItems().filter(item => 
-    item.type === 'consumable' && 
-    inventory.items.some(i => i.id === item.id && i.quantity > 0)
-  );
+  const consumableItems = getItems().filter(item => {
+    const invItem = inventory.items.find(i => i.id === item.id);
+    return item.type === 'consumable' && invItem && invItem.quantity > 0;
+  });
 
   if (playerCharacters.length === 0) {
     return (

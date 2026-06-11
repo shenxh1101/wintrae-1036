@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Noto Serif SC', serif;
+    background-color: #1a120b;
+    background-image: 
+      radial-gradient(ellipse at top, rgba(201, 162, 39, 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom, rgba(0, 0, 0, 0.5) 0%, transparent 50%);
+    color: #f9e8b8;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #1a120b;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #8b6914;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #c9a227;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-btn-gradient text-white font-semibold rounded-lg 
+           shadow-gold-sm hover:shadow-gold transition-all duration-300 
+           hover:scale-105 active:scale-95 disabled:opacity-50 
+           disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-bg-tertiary border-2 border-gold-600 text-gold-300 
+           font-semibold rounded-lg hover:bg-gold-700/20 hover:border-gold-400
+           transition-all duration-300 hover:scale-105 active:scale-95
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply px-6 py-3 bg-accent-red/80 text-white font-semibold rounded-lg 
+           hover:bg-accent-red transition-all duration-300 hover:scale-105 
+           active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .card {
+    @apply bg-card-gradient rounded-xl border border-gold-800/50 
+           shadow-card p-6 backdrop-blur-sm;
+  }
+
+  .card-hover {
+    @apply hover:border-gold-500/50 hover:shadow-gold transition-all duration-300 
+           hover:scale-[1.02] cursor-pointer;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2 bg-bg-secondary border border-gold-800/50 
+           rounded-lg text-gold-100 placeholder-gold-700/50 
+           focus:outline-none focus:border-gold-500 focus:ring-2 
+           focus:ring-gold-500/20 transition-all duration-200;
+  }
+
+  .title-text {
+    @apply font-serif font-bold text-transparent bg-clip-text 
+           bg-gold-gradient;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px rgba(201, 162, 39, 0.5), 
+                 0 0 20px rgba(201, 162, 39, 0.3);
+  }
+
+  .grid-cell {
+    @apply aspect-square border border-gold-800/30 bg-bg-secondary/30
+           transition-all duration-200;
+  }
+
+  .grid-cell:hover {
+    @apply bg-gold-700/20 border-gold-600/50;
+  }
+
+  .status-effect-icon {
+    @apply w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold;
+  }
+}
+
+@layer utilities {
+  .text-shadow-gold {
+    text-shadow: 0 0 10px rgba(201, 162, 39, 0.5);
+  }
+
+  .border-gold-gradient {
+    border-image: linear-gradient(135deg, #c9a227, #8b6914) 1;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-bounce-in {
+    animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}

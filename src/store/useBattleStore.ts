@@ -425,6 +425,12 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
         c.id === nextUnitId ? { ...c, isDefending: false, hasActed: false } : c
       ),
     }));
+
+    if (!isPlayerTurn && !get().battleEnded) {
+      setTimeout(() => {
+        get().executeEnemyTurn();
+      }, 700);
+    }
   },
 
   executeEnemyTurn: () => {
@@ -514,6 +520,12 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     });
 
     get().checkBattleEnd();
+
+    if (!get().battleEnded) {
+      setTimeout(() => {
+        get().endTurn();
+      }, 500);
+    }
   },
 
   addBattleLog: (message) =>

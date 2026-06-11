@@ -125,7 +125,7 @@ const EventRoom = () => {
               : "什么也没发生...";
             break;
           case "hp":
-            healAllCharacters(option.result.value / 100);
+            healAllCharacters(option.result.value);
             if (option.result.value >= 1) {
               restoreAllMp(1);
               message = "队伍完全恢复了生命和法力！";

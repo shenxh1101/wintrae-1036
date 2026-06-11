@@ -46,14 +46,10 @@ const Battle = () => {
     defend,
     useItem,
     endTurn,
-    executeEnemyTurn,
     addBattleLog,
-    checkBattleEnd,
     calculateRewards,
     getUnitById,
     isPlayerUnit,
-    processTurnStart,
-    processTurnEnd,
   } = useBattleStore();
 
   const { towerState, getCurrentRoom, completeRoom, setLastResult } = useGameStore();
@@ -95,24 +91,20 @@ const Battle = () => {
     }
   }, [battleEnded, battleResult]);
 
-  useEffect(() => {
-    if (currentTurnUnitId && !isPlayerTurn && !battleEnded && !isProcessing) {
-      setIsProcessing(true);
-      const timer = setTimeout(() => {
-        executeEnemyTurn();
-        setTimeout(() => {
-          if (!useBattleStore.getState().battleEnded) {
-            endTurn();
-          }
-          setIsProcessing(false);
-        }, 800);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [currentTurnUnitId, isPlayerTurn, battleEnded]);
-
   const handleBattleEnd = () => {
     calculateRewards();
+    
+    const finalPlayerChars = useBattleStore.getState().playerCharacters;
+    const { updateCharacter } = usePlayerStore.getState();
+    finalPlayerChars.forEach((bc) => {
+      updateCharacter(bc.id, {
+        hp: bc.hp,
+        mp: bc.mp,
+        statusEffects: bc.statusEffects,
+        level: bc.level,
+        exp: bc.exp,
+      });
+    });
     
     if (battleResult === 'victory') {
       enemies.forEach(enemy => {
@@ -248,9 +240,9 @@ const Battle = () => {
   };
 
   const handleUseItem = (item: Item, targetId: string) => {
-    const playerSuccess = usePlayerItem(item.id, targetId);
     const battleSuccess = useItem(item.id, targetId);
-    if (playerSuccess && battleSuccess) {
+    if (battleSuccess) {
+      usePlayerItem(item.id, targetId);
       useBattleStore.setState((state) => ({
         playerCharacters: state.playerCharacters.map((c) =>
           c.id === selectedUnitId ? { ...c, hasActed: true } : c

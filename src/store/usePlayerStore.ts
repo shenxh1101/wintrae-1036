@@ -16,6 +16,7 @@ interface PlayerStore extends PlayerState {
   unequipItem: (characterId: string, slot: string) => void;
   addItem: (itemId: string, quantity: number) => void;
   useItem: (itemId: string, characterId: string) => boolean;
+  consumeItem: (itemId: string, quantity?: number) => boolean;
   addExp: (characterId: string, amount: number) => void;
   healCharacter: (characterId: string, amount: number) => void;
   healAllCharacters: (percentage: number) => void;
@@ -182,6 +183,25 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         },
       };
     }),
+
+  consumeItem: (itemId, quantity = 1) => {
+    const { inventory } = get();
+    const itemInInventory = inventory.items.find((i) => i.id === itemId);
+    if (!itemInInventory || itemInInventory.quantity < quantity) {
+      return false;
+    }
+    set((state) => ({
+      inventory: {
+        ...state.inventory,
+        items: state.inventory.items
+          .map((i) =>
+            i.id === itemId ? { ...i, quantity: i.quantity - quantity } : i
+          )
+          .filter((i) => i.quantity > 0),
+      },
+    }));
+    return true;
+  },
 
   useItem: (itemId, characterId) => {
     const { characters, inventory } = get();

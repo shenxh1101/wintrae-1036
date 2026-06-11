@@ -53,7 +53,7 @@ const Battle = () => {
   } = useBattleStore();
 
   const { towerState, getCurrentRoom, completeRoom, setLastResult } = useGameStore();
-  const { characters, addGold, addExp, addEquipment, addItem, addToCodex, inventory, useItem: usePlayerItem } = usePlayerStore();
+  const { characters, addGold, addExp, addEquipment, addItem, addToCodex, inventory, consumeItem } = usePlayerStore();
   const [showItemModal, setShowItemModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
@@ -241,17 +241,19 @@ const Battle = () => {
 
   const handleUseItem = (item: Item, targetId: string) => {
     const battleSuccess = useItem(item.id, targetId);
-    if (battleSuccess) {
-      usePlayerItem(item.id, targetId);
-      useBattleStore.setState((state) => ({
-        playerCharacters: state.playerCharacters.map((c) =>
-          c.id === selectedUnitId ? { ...c, hasActed: true } : c
-        ),
-        selectedAction: null,
-      }));
-      setShowItemModal(false);
-      setSelectedItem(null);
-    }
+    if (!battleSuccess) return;
+
+    const consumed = consumeItem(item.id, 1);
+    if (!consumed) return;
+
+    useBattleStore.setState((state) => ({
+      playerCharacters: state.playerCharacters.map((c) =>
+        c.id === selectedUnitId ? { ...c, hasActed: true } : c
+      ),
+      selectedAction: null,
+    }));
+    setShowItemModal(false);
+    setSelectedItem(null);
   };
 
   const getSelectedCharacter = (): Character | undefined => {

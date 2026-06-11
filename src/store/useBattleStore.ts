@@ -62,6 +62,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     }));
 
     const turnOrder = determineTurnOrder(battleCharacters, enemies);
+    const firstIsPlayer = battleCharacters.some((c) => c.id === turnOrder[0]);
 
     set({
       playerCharacters: battleCharacters,
@@ -75,11 +76,19 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
       attackRange: [],
       targetablePositions: [],
       battleLog: ['战斗开始！'],
-      isPlayerTurn: battleCharacters.some((c) => c.id === turnOrder[0]),
+      isPlayerTurn: firstIsPlayer,
       battleEnded: false,
       battleResult: null,
       rewards: null,
     });
+
+    if (!firstIsPlayer) {
+      setTimeout(() => {
+        if (!get().battleEnded) {
+          get().executeEnemyTurn();
+        }
+      }, 700);
+    }
   },
 
   selectUnit: (unitId) => set({ selectedUnitId: unitId }),
